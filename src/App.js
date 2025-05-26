@@ -4,7 +4,7 @@ import ChatWindow from './components/ChatWindow';
 import './App.css';
 
 // Connect to backend WebSocket server
-const socket = io('http://localhost:5001');
+const socket = io('https://chat-bot-back-3mrg.onrender.com');
 
 // Assign user identity (A or B) randomly and store in localStorage
 const getUsername = () => {
