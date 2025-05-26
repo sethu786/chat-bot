@@ -1,23 +1,43 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
+import ChatWindow from './components/ChatWindow';
 import './App.css';
 
+// Connect to backend WebSocket server
+const socket = io('http://localhost:5001');
+
+// Assign user identity (A or B) randomly and store in localStorage
+const getUsername = () => {
+  let user = localStorage.getItem('chat-user');
+  if (!user) {
+    user = Math.random() > 0.5 ? 'Person A' : 'Person B';
+    localStorage.setItem('chat-user', user);
+  }
+  return user;
+};
+
 function App() {
+  const [username] = useState(getUsername());
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    // Listen for messages from server
+    socket.on('receive_message', (data) => {
+      setMessages((prev) => [...prev, data]);
+    });
+
+    // Clean up listener on unmount
+    return () => socket.off('receive_message');
+  }, []);
+
+  const sendMessage = (text) => {
+    const message = { sender: username, text };
+    socket.emit('send_message', message); // Only emit, no local push
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <ChatWindow user={username} messages={messages} onSend={sendMessage} />
     </div>
   );
 }
